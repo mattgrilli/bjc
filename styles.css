@@ -215,32 +215,61 @@ h1 {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
+    perspective: 1000px;
 }
 
 .card {
     width: 80px;
     height: 120px;
     background-color: #fff;
-    color: #000;
     border-radius: 5px;
     margin: 0 5px 5px 0;
-    font-size: 24px;
-    line-height: 120px;
-    text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease-out;
     display: inline-block;
-    animation: dealCard 0.5s ease-out;
+    position: relative;
+    font-family: 'Arial', sans-serif;
+    line-height: 1;
+    cursor: default;
+    animation: dealCard 0.5s ease-out backwards;
+}
+
+.card-back::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
+    left: 5px;
+    border: 2px solid #FFF;
+    border-radius: 3px;
+}
+
+.card-back::after {
+    content: "♠♣♥♦";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #FFF;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.card.card-back {
+    background-color: #0063B3;
+    background-image: 
+        repeating-linear-gradient(45deg, #0063B3, #0063B3 5px, #004C8C 5px, #004C8C 10px);
 }
 
 @keyframes dealCard {
-    from {
+    0% {
         opacity: 0;
-        transform: translateY(-50px) rotate(-10deg);
+        transform: translateY(-100px) translateX(-100px) rotate(-90deg);
     }
-    to {
+    100% {
         opacity: 1;
-        transform: translateY(0) rotate(0);
+        transform: translateY(0) translateX(0) rotate(0);
     }
 }
 
@@ -249,7 +278,55 @@ h1 {
 }
 
 .card.red {
-    color: #ff0000;
+    color: #D40000;
+}
+
+.card.black {
+    color: #000000;
+}
+
+.card-corner {
+    position: absolute;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20px;
+}
+
+.top-left {
+    top: 5px;
+    left: 5px;
+}
+
+.bottom-right {
+    bottom: 5px;
+    right: 5px;
+    transform: rotate(180deg);
+}
+
+.card-value {
+    font-weight: bold;
+}
+
+.card-suit {
+    font-size: 16px;
+}
+
+.card-center-suit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+}
+
+.card-back {
+    background-color: #0063B3;
+    background-image: 
+        repeating-linear-gradient(45deg, #0063B3, #0063B3 5px, #004C8C 5px, #004C8C 10px);
+    position: relative;
+    overflow: hidden;
 }
 
 #actions {
@@ -387,12 +464,27 @@ button.enabled:hover {
     .card {
         width: 60px;
         height: 90px;
-        font-size: 18px;
-        line-height: 90px;
+    }
+
+    .card-corner {
+        font-size: 12px;
+    }
+
+    .card-suit {
+        font-size: 14px;
+    }
+
+    .card-center-suit {
+        font-size: 30px;
     }
 
     button {
         padding: 8px 16px;
         font-size: 14px;
     }
+
+    .card-back::after {
+        font-size: 18px;
+    }
 }
+

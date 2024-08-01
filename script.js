@@ -258,18 +258,80 @@ class Game {
         this.player.hands = [new Hand()];
         this.player.hands[0].bet = this.currentBet;
         this.dealer = new Hand();
-
-        this.player.hands[0].addCard(this.deck.deal());
-        this.dealer.addCard(this.deck.deal());
-        this.player.hands[0].addCard(this.deck.deal());
-        this.dealer.addCard(this.deck.deal());
-
-        this.currentHandIndex = 0;
-        this.gamePhase = 'playerTurn';
-        this.checkForBlackjack();
+    
+        // New: Define the dealing sequence
+        const dealSequence = [
+            { target: this.player.hands[0], faceUp: true },
+            { target: this.dealer, faceUp: true },
+            { target: this.player.hands[0], faceUp: true },
+            { target: this.dealer, faceUp: false }
+        ];
+    
+        // New: Set game phase to 'dealing'
+        this.gamePhase = 'dealing';
         this.updateUI();
-        this.offerInsurance();
+    
+        // New: Use forEach with setTimeout for sequential dealing
+        dealSequence.forEach((deal, index) => {
+            setTimeout(() => {
+                const card = this.deck.deal();
+                deal.target.addCard(card);
+                this.animateDealCard(deal.target, card, deal.faceUp, index);
+    
+                if (index === dealSequence.length - 1) {
+                    setTimeout(() => {
+                        this.gamePhase = 'playerTurn';
+                        this.currentHandIndex = 0;
+                        this.checkForBlackjack();
+                        this.updateUI();
+                        this.offerInsurance();
+                    }, 500);
+                }
+            }, index * 500);
+        });
+    }
+    
+    animateDealCard(target, card, faceUp, index) {
+        const handElement = target === this.dealer ? document.getElementById('dealer-cards') : document.querySelector('.hand-cards');
+        const cardElement = document.createElement('div');
+        cardElement.className = `card ${faceUp ? '' : 'card-back'}`;
+        cardElement.style.animation = `dealCard 0.5s ease-out ${index * 0.5}s backwards`;
+        
+        if (faceUp) {
+            cardElement.innerHTML = this.createCardInnerHTML(card);
+        } else {
+            // Ensure the back of the card is visible even when face down
+            cardElement.style.backgroundColor = '#0063B3';
+            cardElement.style.backgroundImage = `repeating-linear-gradient(45deg, #0063B3, #0063B3 5px, #004C8C 5px, #004C8C 10px)`;
+        }
+    
+        handElement.appendChild(cardElement);
         playSound(cardSound);
+    }
+    
+    
+    createCardInnerHTML(card) {
+        const suitSymbols = {
+            '♠': '&spades;',
+            '♥': '&hearts;',
+            '♦': '&diams;',
+            '♣': '&clubs;'
+        };
+        
+        let color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+        let symbol = suitSymbols[card.suit] || card.suit;
+        
+        return `
+            <div class="card-corner top-left">
+                <div class="card-value">${card.value}</div>
+                <div class="card-suit">${symbol}</div>
+            </div>
+            <div class="card-center-suit">${symbol}</div>
+            <div class="card-corner bottom-right">
+                <div class="card-value">${card.value}</div>
+                <div class="card-suit">${symbol}</div>
+            </div>
+        `;
     }
 
     hit(handIndex) {
@@ -357,10 +419,29 @@ class Game {
     dealerPlay() {
         this.gamePhase = 'dealerTurn';
         this.updateUI();
-        while (this.dealer.getScore() < 17) {
-            this.dealer.addCard(this.deck.deal());
+    
+        // Reveal the dealer's hidden card first
+        const hiddenCard = document.querySelector('#dealer-cards .card-back');
+        if (hiddenCard) {
+            hiddenCard.className = 'card';
+            hiddenCard.innerHTML = this.createCardInnerHTML(this.dealer.cards[1]);
+            playSound(cardSound);
         }
-        this.determineWinner();
+    
+        setTimeout(() => {
+            const dealerPlaySequence = async () => {
+                while (this.dealer.getScore() < 17) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+                    const card = this.deck.deal();
+                    this.dealer.addCard(card);
+                    this.animateDealCard(this.dealer, card, true, this.dealer.cards.length - 1);
+                    this.updateUI();
+                }
+                this.determineWinner();
+            };
+    
+            dealerPlaySequence();
+        }, 1000); // 1 second delay before starting to draw new cards
     }
 
     determineWinner() {
@@ -597,8 +678,33 @@ class Game {
     }
 
     createCardElement(card) {
-        let color = (card.suit === '♥' || card.suit === '♦') ? 'red' : '';
-        return `<div class="card ${color}">${card.value}${card.suit}</div>`;
+        const suitSymbols = {
+            '♠': '&spades;',
+            '♥': '&hearts;',
+            '♦': '&diams;',
+            '♣': '&clubs;'
+        };
+        
+        let color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+        let symbol = suitSymbols[card.suit] || card.suit;
+        
+        if (card.value === '?') {
+            return `<div class="card card-back"></div>`;
+        }
+        
+        return `
+            <div class="card ${color}">
+                <div class="card-corner top-left">
+                    <div class="card-value">${card.value}</div>
+                    <div class="card-suit">${symbol}</div>
+                </div>
+                <div class="card-center-suit">${symbol}</div>
+                <div class="card-corner bottom-right">
+                    <div class="card-value">${card.value}</div>
+                    <div class="card-suit">${symbol}</div>
+                </div>
+            </div>
+        `;
     }
 
     animateChip(amount) {
