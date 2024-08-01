@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is an advanced implementation of the classic casino game Blackjack, built with HTML, CSS, and JavaScript. The game features a sleek user interface, realistic chip betting, and adherence to standard Blackjack rules.
+This is an implementation of the classic casino game Blackjack, built with HTML, CSS, and JavaScript. The game features a sleek user interface, realistic chip betting, and adherence to standard Blackjack rules.
 
 ![image](https://github.com/user-attachments/assets/8656fd9a-b94f-4fac-89e7-6ba89b472ef7)
 
@@ -28,7 +28,7 @@ This is an advanced implementation of the classic casino game Blackjack, built w
    ```
    cd bjc
    ```
-3. Open `index.html` in your web browser to start the game.
+3. Open `blackjack.html` in your web browser to start the game.
 
 ## How to Play
 
@@ -56,7 +56,7 @@ This is an advanced implementation of the classic casino game Blackjack, built w
 - Implement a proper insurance betting system
 - Add a surrender option
 - Create a multi-deck shoe with a cut card
-- Implement sound effects
+- Implement sound effects - baasic implementation present
 - Add more detailed statistics and achievement system
 
 ## Contributing
