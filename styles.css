@@ -37,6 +37,16 @@ body.theme3 {
     width: 100%;
 }
 
+#game-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+}
+
 h1 {
     color: #ffd700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -45,13 +55,14 @@ h1 {
 
 #stats-bar {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 #balance, #bet {
     font-size: 18px;
     color: #ffd700;
+    margin-bottom: 5px;
 }
 
 #betting-area {
@@ -359,12 +370,28 @@ h1 {
 }
 
 #shoe {
-    /* Add styles for your shoe element */
-    width: 100px;
-    height: 150px;
+    width: 80px;
+    height: 120px;
     background-color: #333;
+    border-radius: 10px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+#shoe-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#shoe-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background-color: #0063B3;
+    transition: height 0.5s ease-out;
 }
 
 #shoe::before {
@@ -381,8 +408,18 @@ h1 {
         #333 10px,
         #333 20px
     );
-    opacity: 0;
-    transition: opacity 0.5s;
+    opacity: 0.3;
+}
+
+#shoe::after {
+    content: '♠♥♦♣';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #ffd700;
+    opacity: 0.5;
 }
 
 #shoe.reshuffling::before {
@@ -394,6 +431,7 @@ h1 {
     0% { background-position: 0 0; }
     100% { background-position: 40px 40px; }
 }
+
 .top-left {
     top: 5px;
     left: 5px;
@@ -427,6 +465,12 @@ h1 {
         repeating-linear-gradient(45deg, #0063B3, #0063B3 5px, #004C8C 5px, #004C8C 10px);
     position: relative;
     overflow: hidden;
+}
+
+#cards-remaining {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ffd700;
 }
 
 #actions {
@@ -551,10 +595,10 @@ button.enabled:hover {
 }
 
 @media (max-width: 600px) {
-    #game-container {
-        padding: 10px;
+    #game-info {
+        flex-direction: column;
+        align-items: stretch;
     }
-
     .chip {
         width: 50px;
         height: 50px;
@@ -586,5 +630,18 @@ button.enabled:hover {
     .card-back::after {
         font-size: 18px;
     }
+    #stats-bar {
+        margin-bottom: 15px;
+    }
+
+    #shoe {
+        width: 60px;
+        height: 90px;
+    }
+
+    #shoe::after {
+        font-size: 18px;
+    }
 }
+
 

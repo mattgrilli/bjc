@@ -309,6 +309,7 @@ class Game {
                         this.currentHandIndex = 0;
                         this.checkForBlackjack();
                         this.updateUI();
+                        this.updateShoeDisplay();
                         this.offerInsurance();
                     }, 500);
                 }
@@ -399,6 +400,7 @@ class Game {
             this.stand(handIndex);
         }
         this.updateUI();
+        this.updateShoeDisplay();
     }
 
     stand(handIndex) {
@@ -488,6 +490,7 @@ class Game {
     dealerPlay() {
         this.gamePhase = 'dealerTurn';
         this.updateUI();
+        this.updateShoeDisplay();
     
         // Reveal the dealer's hidden card first
         const hiddenCard = document.querySelector('#dealer-cards .card-back');
@@ -650,11 +653,23 @@ class Game {
         this.animateReshuffle();
     }
 
+    updateShoeDisplay() {
+        const totalCards = this.deck.numDecks * 52;
+        const remainingCards = this.deck.cardsRemaining();
+        const fillPercentage = (remainingCards / totalCards) * 100;
+
+        const shoeFill = document.getElementById('shoe-fill');
+        shoeFill.style.height = `${fillPercentage}%`;
+
+        document.getElementById('cards-remaining').textContent = `Cards in shoe: ${remainingCards}`;
+    }
+
     animateReshuffle() {
         const shoeElement = document.getElementById('shoe');
         shoeElement.classList.add('reshuffling');
         setTimeout(() => {
             shoeElement.classList.remove('reshuffling');
+            this.updateShoeDisplay();
         }, 2000);
     }
 
@@ -936,6 +951,7 @@ document.addEventListener('keydown', (event) => {
 
 // Initial UI update
 game.updateUI();
+game.updateShoeDisplay();
 
 // Add tooltips to explain keyboard shortcuts
 const tooltips = [
