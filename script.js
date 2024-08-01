@@ -35,7 +35,7 @@ let gameStats = loadStats();
 updateStatsDisplay();
 
 class Deck {
-    constructor(numDecks = 1) {
+    constructor(numDecks = 6) {
         this.numDecks = numDecks;
         this.reset();
     }
@@ -50,6 +50,7 @@ class Deck {
             }
         }
         this.shuffle();
+        this.cutCard = this.cards.length / 2 + Math.floor(Math.random() * (this.cards.length / 4));
     }
 
     shuffle() {
@@ -59,15 +60,18 @@ class Deck {
             i = Math.floor(Math.random() * m--);
             [cards[m], cards[i]] = [cards[i], cards[m]];
         }
-        const cut = Math.floor(cards.length / 2) + Math.floor(Math.random() * 20) - 10;
-        this.cards = [...cards.slice(cut), ...cards.slice(0, cut)];
     }
 
     deal() {
-        if (this.cards.length < 1) {
+        if (this.cards.length <= this.cutCard) {
+            console.log("Reshuffling the deck");
             this.reset();
         }
         return this.cards.pop();
+    }
+
+    cardsRemaining() {
+        return this.cards.length;
     }
 }
 
@@ -255,11 +259,17 @@ class Game {
             setMessage("Please place a bet first.");
             return;
         }
+    
+        // Check if we need to reshuffle before dealing
+        if (this.deck.cardsRemaining() <= this.deck.cutCard) {
+            setMessage("Reshuffling the deck for this hand.");
+            this.deck.reset();
+        }
+    
         this.player.hands = [new Hand()];
         this.player.hands[0].bet = this.currentBet;
         this.dealer = new Hand();
     
-        // New: Define the dealing sequence
         const dealSequence = [
             { target: this.player.hands[0], faceUp: true },
             { target: this.dealer, faceUp: true },
@@ -267,11 +277,13 @@ class Game {
             { target: this.dealer, faceUp: false }
         ];
     
-        // New: Set game phase to 'dealing'
         this.gamePhase = 'dealing';
         this.updateUI();
     
-        // New: Use forEach with setTimeout for sequential dealing
+        // Clear existing cards
+        document.querySelector('.hand-cards').innerHTML = '';
+        document.getElementById('dealer-cards').innerHTML = '';
+    
         dealSequence.forEach((deal, index) => {
             setTimeout(() => {
                 const card = this.deck.deal();
@@ -289,23 +301,36 @@ class Game {
                 }
             }, index * 500);
         });
+    
+        // Update the UI to show remaining cards in the shoe
+        document.getElementById('cards-remaining').textContent = `Cards in shoe: ${this.deck.cardsRemaining()}`;
     }
     
     animateDealCard(target, card, faceUp, index) {
         const handElement = target === this.dealer ? document.getElementById('dealer-cards') : document.querySelector('.hand-cards');
         const cardElement = document.createElement('div');
         cardElement.className = `card ${faceUp ? '' : 'card-back'}`;
-        cardElement.style.animation = `dealCard 0.5s ease-out ${index * 0.5}s backwards`;
+        cardElement.style.opacity = '0';
+        cardElement.style.transform = 'translateY(-100px) translateX(-100px) rotate(-90deg)';
         
         if (faceUp) {
             cardElement.innerHTML = this.createCardInnerHTML(card);
+            cardElement.classList.add(card.suit === '♥' || card.suit === '♦' ? 'red' : 'black');
         } else {
-            // Ensure the back of the card is visible even when face down
             cardElement.style.backgroundColor = '#0063B3';
             cardElement.style.backgroundImage = `repeating-linear-gradient(45deg, #0063B3, #0063B3 5px, #004C8C 5px, #004C8C 10px)`;
         }
     
         handElement.appendChild(cardElement);
+    
+        // Trigger reflow
+        void cardElement.offsetWidth;
+    
+        // Apply the animation
+        cardElement.style.transition = 'all 0.5s ease-out';
+        cardElement.style.opacity = '1';
+        cardElement.style.transform = 'translateY(0) translateX(0) rotate(0)';
+    
         playSound(cardSound);
     }
     
@@ -381,9 +406,15 @@ class Game {
     }
 
     offerInsurance() {
-        if (this.allowInsurance && this.dealer.cards[0].value === 'A' && this.player.balance >= this.player.hands[0].bet / 2) {
+        if (this.allowInsurance && 
+            this.gamePhase === 'playerTurn' && 
+            this.dealer.cards[0].value === 'A' && 
+            this.player.hands[0].cards.length === 2 && // Only offer on initial deal
+            this.player.balance >= this.player.hands[0].bet / 2) {
             setMessage("Dealer's up card is an Ace. Would you like to buy insurance?");
             document.getElementById('insurance').style.display = 'inline-block';
+        } else {
+            document.getElementById('insurance').style.display = 'none';
         }
     }
 
@@ -468,12 +499,30 @@ class Game {
     checkForBlackjack() {
         const playerScore = this.player.hands[0].getScore();
         const dealerScore = this.dealer.getScore();
-
+    
+        const showBlackjackPopup = (message) => {
+            const popup = document.createElement('div');
+            popup.className = 'blackjack-popup';
+            popup.textContent = message;
+            document.body.appendChild(popup);
+    
+            // Play a special sound for Blackjack
+            const blackjackSound = new Audio('sounds/blackjack.mp3'); // Make sure you have this sound file
+            blackjackSound.play();
+    
+            setTimeout(() => {
+                popup.remove();
+            }, 3000);
+        };
+    
         if (playerScore === 21 && dealerScore === 21) {
+            showBlackjackPopup("Double Blackjack!");
             this.endHand('push', 0, "Both have Blackjack! It's a push.");
         } else if (playerScore === 21) {
+            showBlackjackPopup("Blackjack!");
             this.endHand('blackjack', 0);
         } else if (dealerScore === 21) {
+            showBlackjackPopup("Dealer Blackjack!");
             this.endHand('loss', 0, "Dealer has Blackjack! You lose.");
         }
     }
@@ -661,12 +710,19 @@ class Game {
 
     canDouble() {
         const currentHand = this.player.hands[this.currentHandIndex];
-        return this.gamePhase === 'playerTurn' && currentHand.cards.length === 2 && this.player.balance >= currentHand.bet;
+        return this.gamePhase === 'playerTurn' && 
+               (currentHand.cards.length === 2 || this.allowDoubleAfterSplit) && 
+               this.player.balance >= currentHand.bet;
     }
 
     canSplit() {
         const currentHand = this.player.hands[this.currentHandIndex];
-        return this.gamePhase === 'playerTurn' && currentHand.canSplit() && this.player.balance >= currentHand.bet;
+        return this.gamePhase === 'playerTurn' && 
+               currentHand.cards.length === 2 && 
+               (currentHand.cards[0].value === currentHand.cards[1].value ||
+               (isNaN(currentHand.cards[0].value) && isNaN(currentHand.cards[1].value))) && // Allow splitting face cards
+               this.player.balance >= currentHand.bet &&
+               this.player.hands.length < 4; // Limit to 4 hands (3 splits)
     }
 
     canSurrender() {
