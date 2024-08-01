@@ -218,12 +218,26 @@ h1 {
     perspective: 1000px;
 }
 
-/* Add this to your styles.css file */
+/* Replace the existing Blackjack popup styles in your styles.css file with these */
 
 @keyframes blackjackPopup {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.2); }
-    100% { transform: scale(1); opacity: 1; }
+    0% { 
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    70% { 
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 20px #FFD700; }
+    50% { box-shadow: 0 0 40px #FFD700, 0 0 60px #FF6347; }
 }
 
 .blackjack-popup {
@@ -231,15 +245,17 @@ h1 {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #FFD700;
+    background: linear-gradient(45deg, #B8860B, #DAA520);
+    color: #FFFFFF;
     font-size: 48px;
     font-weight: bold;
-    padding: 20px 40px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px #FFD700;
+    padding: 30px 50px;
+    border-radius: 15px;
     z-index: 1000;
-    animation: blackjackPopup 0.5s ease-out;
+    animation: 
+        blackjackPopup 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        glowPulse 2s infinite;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .blackjack-popup::before,
@@ -247,17 +263,18 @@ h1 {
     content: '♠♥♦♣';
     position: absolute;
     font-size: 24px;
-    color: #FFD700;
+    color: #FFFFFF;
+    opacity: 0.7;
 }
 
 .blackjack-popup::before {
-    top: 5px;
-    left: 10px;
+    top: 10px;
+    left: 15px;
 }
 
 .blackjack-popup::after {
-    bottom: 5px;
-    right: 10px;
+    bottom: 10px;
+    right: 15px;
 }
 
 .card {
@@ -327,6 +344,56 @@ h1 {
     width: 20px;
 }
 
+.cut-card {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #FF0000;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: transform 0.5s ease-out;
+    z-index: 10;
+}
+
+#shoe {
+    /* Add styles for your shoe element */
+    width: 100px;
+    height: 150px;
+    background-color: #333;
+    position: relative;
+    overflow: hidden;
+}
+
+#shoe::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        #444,
+        #444 10px,
+        #333 10px,
+        #333 20px
+    );
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+#shoe.reshuffling::before {
+    opacity: 1;
+    animation: shuffle 1s linear infinite;
+}
+
+@keyframes shuffle {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
 .top-left {
     top: 5px;
     left: 5px;

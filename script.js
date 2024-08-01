@@ -50,28 +50,38 @@ class Deck {
             }
         }
         this.shuffle();
-        this.cutCard = this.cards.length / 2 + Math.floor(Math.random() * (this.cards.length / 4));
+        this.setNewCutCard();
+        this.reshuffleNeeded = false;
+    }
+
+    setNewCutCard() {
+        // Place cut card randomly in last quarter of the shoe
+        const minPosition = Math.floor(this.cards.length * 0.75);
+        const maxPosition = this.cards.length - 20; // Ensure at least 20 cards after cut card
+        this.cutCard = Math.floor(Math.random() * (maxPosition - minPosition + 1)) + minPosition;
     }
 
     shuffle() {
-        const { cards } = this;
-        let m = cards.length, i;
-        while (m) {
-            i = Math.floor(Math.random() * m--);
-            [cards[m], cards[i]] = [cards[i], cards[m]];
+        for (let i = this.cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
     }
 
     deal() {
-        if (this.cards.length <= this.cutCard) {
-            console.log("Reshuffling the deck");
-            this.reset();
+        if (this.cards.length <= this.cutCard && !this.reshuffleNeeded) {
+            this.reshuffleNeeded = true;
+            return { card: this.cards.pop(), isLastHand: true };
         }
-        return this.cards.pop();
+        return { card: this.cards.pop(), isLastHand: false };
     }
 
     cardsRemaining() {
         return this.cards.length;
+    }
+
+    needsReshuffle() {
+        return this.reshuffleNeeded;
     }
 }
 
@@ -207,6 +217,7 @@ class Game {
         this.initializeChips();
         this.themes = ['theme1', 'theme2', 'theme3'];
         this.currentTheme = 0;
+        this.lastHandBeforeReshuffle = false;
     }
 
     initializeChips() {
@@ -259,37 +270,39 @@ class Game {
             setMessage("Please place a bet first.");
             return;
         }
-    
-        // Check if we need to reshuffle before dealing
-        if (this.deck.cardsRemaining() <= this.deck.cutCard) {
-            setMessage("Reshuffling the deck for this hand.");
-            this.deck.reset();
-        }
-    
+
         this.player.hands = [new Hand()];
         this.player.hands[0].bet = this.currentBet;
         this.dealer = new Hand();
-    
+
         const dealSequence = [
             { target: this.player.hands[0], faceUp: true },
             { target: this.dealer, faceUp: true },
             { target: this.player.hands[0], faceUp: true },
             { target: this.dealer, faceUp: false }
         ];
-    
+
         this.gamePhase = 'dealing';
         this.updateUI();
-    
+
         // Clear existing cards
         document.querySelector('.hand-cards').innerHTML = '';
         document.getElementById('dealer-cards').innerHTML = '';
-    
+
+        let lastHandTriggered = false;
+
         dealSequence.forEach((deal, index) => {
             setTimeout(() => {
-                const card = this.deck.deal();
+                const { card, isLastHand } = this.deck.deal();
                 deal.target.addCard(card);
                 this.animateDealCard(deal.target, card, deal.faceUp, index);
-    
+
+                if (isLastHand && !lastHandTriggered) {
+                    this.lastHandBeforeReshuffle = true;
+                    this.showCutCard();
+                    lastHandTriggered = true;
+                }
+
                 if (index === dealSequence.length - 1) {
                     setTimeout(() => {
                         this.gamePhase = 'playerTurn';
@@ -301,11 +314,26 @@ class Game {
                 }
             }, index * 500);
         });
-    
+
         // Update the UI to show remaining cards in the shoe
         document.getElementById('cards-remaining').textContent = `Cards in shoe: ${this.deck.cardsRemaining()}`;
     }
-    
+
+    showCutCard() {
+        const cutCard = document.createElement('div');
+        cutCard.className = 'cut-card';
+        cutCard.textContent = 'RESHUFFLE';
+        document.getElementById('dealer-cards').appendChild(cutCard);
+        
+        setTimeout(() => {
+            cutCard.style.transform = 'translateY(-100%)';
+        }, 100);
+
+        setTimeout(() => {
+            cutCard.remove();
+        }, 3000);
+    }
+
     animateDealCard(target, card, faceUp, index) {
         const handElement = target === this.dealer ? document.getElementById('dealer-cards') : document.querySelector('.hand-cards');
         const cardElement = document.createElement('div');
@@ -320,21 +348,20 @@ class Game {
             cardElement.style.backgroundColor = '#0063B3';
             cardElement.style.backgroundImage = `repeating-linear-gradient(45deg, #0063B3, #0063B3 5px, #004C8C 5px, #004C8C 10px)`;
         }
-    
+
         handElement.appendChild(cardElement);
-    
+
         // Trigger reflow
         void cardElement.offsetWidth;
-    
+
         // Apply the animation
         cardElement.style.transition = 'all 0.5s ease-out';
         cardElement.style.opacity = '1';
         cardElement.style.transform = 'translateY(0) translateX(0) rotate(0)';
-    
+
         playSound(cardSound);
     }
-    
-    
+
     createCardInnerHTML(card) {
         const suitSymbols = {
             '♠': '&spades;',
@@ -360,7 +387,12 @@ class Game {
     }
 
     hit(handIndex) {
-        this.player.hands[handIndex].addCard(this.deck.deal());
+        const { card, isLastHand } = this.deck.deal();
+        this.player.hands[handIndex].addCard(card);
+        if (isLastHand && !this.lastHandBeforeReshuffle) {
+            this.lastHandBeforeReshuffle = true;
+            this.showCutCard();
+        }
         if (this.player.hands[handIndex].getScore() > 21) {
             this.endHand('loss', handIndex);
         } else if (this.player.hands[handIndex].doubledDown) {
@@ -388,8 +420,14 @@ class Game {
         const hand = this.player.hands[handIndex];
         if (this.player.balance >= hand.bet && hand.canSplit()) {
             this.player.split(handIndex);
-            this.player.hands[handIndex].addCard(this.deck.deal());
-            this.player.hands[handIndex + 1].addCard(this.deck.deal());
+            const { card: card1, isLastHand: isLastHand1 } = this.deck.deal();
+            const { card: card2, isLastHand: isLastHand2 } = this.deck.deal();
+            this.player.hands[handIndex].addCard(card1);
+            this.player.hands[handIndex + 1].addCard(card2);
+            if ((isLastHand1 || isLastHand2) && !this.lastHandBeforeReshuffle) {
+                this.lastHandBeforeReshuffle = true;
+                this.showCutCard();
+            }
             this.updateUI();
         } else {
             setMessage("Cannot split. Insufficient funds or cards don't match.");
@@ -463,9 +501,13 @@ class Game {
             const dealerPlaySequence = async () => {
                 while (this.dealer.getScore() < 17) {
                     await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
-                    const card = this.deck.deal();
+                    const { card, isLastHand } = this.deck.deal();
                     this.dealer.addCard(card);
                     this.animateDealCard(this.dealer, card, true, this.dealer.cards.length - 1);
+                    if (isLastHand && !this.lastHandBeforeReshuffle) {
+                        this.lastHandBeforeReshuffle = true;
+                        this.showCutCard();
+                    }
                     this.updateUI();
                 }
                 this.determineWinner();
@@ -511,7 +553,16 @@ class Game {
             blackjackSound.play();
     
             setTimeout(() => {
-                popup.remove();
+                popup.style.animation = 'none'; // Stop the animation
+                popup.offsetHeight; // Trigger reflow
+                popup.style.animation = null; // Remove the animation property
+                popup.style.opacity = '0';
+                popup.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                popup.style.transition = 'opacity 0.3s, transform 0.3s';
+                
+                setTimeout(() => {
+                    popup.remove();
+                }, 300);
             }, 3000);
         };
     
@@ -585,6 +636,26 @@ class Game {
         this.updateUI();
         document.getElementById('next-hand').style.display = 'inline-block';
         this.checkHotStreak();
+
+        if (this.lastHandBeforeReshuffle) {
+            this.reshuffleShoe();
+        }
+    }
+
+    reshuffleShoe() {
+        setMessage("Reshuffling the deck for the next hand.");
+        this.deck.reset();
+        this.lastHandBeforeReshuffle = false;
+        // Animate shoe being reshuffled
+        this.animateReshuffle();
+    }
+
+    animateReshuffle() {
+        const shoeElement = document.getElementById('shoe');
+        shoeElement.classList.add('reshuffling');
+        setTimeout(() => {
+            shoeElement.classList.remove('reshuffling');
+        }, 2000);
     }
 
     showPopupMessage(message, handIndex) {
@@ -638,6 +709,7 @@ class Game {
     updateUI() {
         document.getElementById('balance').textContent = `Balance: $${this.player.balance}`;
         document.getElementById('bet').textContent = `Current Bet: $${this.currentBet}`;
+        document.getElementById('cards-remaining').textContent = `Cards in shoe: ${this.deck.cardsRemaining()}`;
 
         let dealerCardsEl = document.getElementById('dealer-cards');
         dealerCardsEl.innerHTML = this.dealer.cards.map((card, index) => 
@@ -809,18 +881,19 @@ class Game {
         setMessage("Place your bet for the next hand.");
     }
 
-    // Change theme
     changeTheme() {
         this.currentTheme = (this.currentTheme + 1) % this.themes.length;
         document.body.className = this.themes[this.currentTheme];
     }
 }
 
-let game = new Game(1000);
-
+// Function to set message (place this outside the Game class)
 function setMessage(msg) {
     document.getElementById('message').textContent = msg;
 }
+
+// Create the game instance
+let game = new Game(1000);
 
 // Event Listeners
 document.getElementById('deal').addEventListener('click', () => game.deal());
