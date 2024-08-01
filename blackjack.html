@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt's Blackjack</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Matt's Blackjack</h1>
+        <div id="stats-bar">
+            <div id="balance">Balance: $1000</div>
+            <div id="bet">Current Bet: $0</div>
+        </div>
+        <div id="betting-area">
+            <h3>Place Your Bets</h3>
+            <div id="chip-container"></div>
+            <div id="bet-display">
+                <p>Current Bet:</p>
+                <div id="bet-chips"></div>
+            </div>
+            <button id="clear-bet">Clear Bet</button>
+        </div>
+        <div id="dealer-hand">
+            <div class="hand-title">Dealer's Hand</div>
+            <div id="dealer-cards"></div>
+        </div>
+        <div id="player-hands-container">
+            <h2>Player's Hands</h2>
+            <div id="player-hands"></div>
+        </div>
+        <div id="actions">
+            <button id="deal">Deal</button>
+            <button id="hit" disabled>Hit</button>
+            <button id="stand" disabled>Stand</button>
+            <button id="double" disabled>Double Down</button>
+            <button id="split" disabled>Split</button>
+            <button id="surrender" disabled>Surrender</button>
+            <button id="insurance" style="display: none;">Insurance</button>
+            <button id="next-hand" style="display: none;">Next Hand</button>
+            <button id="change-theme">Change Theme</button>
+        </div>
+        <div id="message"></div>
+        <div id="stats"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
