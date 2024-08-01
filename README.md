@@ -4,7 +4,8 @@
 
 This is an implementation of the classic casino game Blackjack, built with HTML, CSS, and JavaScript. The game features a sleek user interface, realistic chip betting, and adherence to standard Blackjack rules.
 
-![image](https://github.com/user-attachments/assets/8656fd9a-b94f-4fac-89e7-6ba89b472ef7)
+![image](https://github.com/user-attachments/assets/744ba782-4e30-4f8d-9b50-183f84f0d9a7)
+
 
 
 ## Features
