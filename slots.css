@@ -1,0 +1,225 @@
+#slot-machine {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+#slot-machine::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url('cosmic-background.jpg');
+    background-size: cover;
+    opacity: 0.2;
+    animation: rotate 60s linear infinite;
+    z-index: -1;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#info-panel {
+    display: flex;
+    justify-content: space-between;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+#info-panel > div {
+    font-size: 18px;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+#reels-container {
+    position: relative;
+    background-color: #000;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+#reels {
+    display: flex;
+    justify-content: space-around;
+}
+
+.reel-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.reel {
+    width: 100px;
+    height: 100px;
+    background-color: #1a1a1a;
+    border: 2px solid #4a4a4a;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 48px;
+    margin: 5px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5) inset;
+}
+
+.payline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+    display: none;
+    z-index: 10;
+}
+
+#payline1 { top: 18%; }
+#payline2 { top: 50%; }
+#payline3 { top: 82%; }
+
+#slot-result {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ffff;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+button {
+    background-color: #4a4a4a;
+    color: #00ffff;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #5a5a5a;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+button:disabled {
+    background-color: #2a2a2a;
+    color: #4a4a4a;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+@keyframes spin {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100px); }
+}
+
+.spinning {
+    animation: spin 0.1s linear infinite;
+}
+
+#pay-table {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 20px;
+    color: #00ffff;
+}
+
+@keyframes winPulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+    50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+}
+
+.win-animation {
+    animation: winPulse 0.5s ease-in-out 3;
+}
+
+.chip {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 5px;
+}
+
+.chip-1 { background-color: #FF4136; color: white; }
+.chip-5 { background-color: #FF851B; color: white; }
+.chip-25 { background-color: #FFDC00; color: black; }
+.chip-100 { background-color: #2ECC40; color: white; }
+
+.chip:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+#bonus-game {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+#bonus-game.hidden {
+    display: none;
+}
+
+#planets {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.planet {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.planet:hover {
+    transform: scale(1.1);
+}
+
+#win-streak {
+    font-weight: bold;
+}
+
+.upgraded {
+    animation: upgrade 0.5s;
+}
+
+@keyframes upgrade {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}

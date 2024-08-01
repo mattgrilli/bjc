@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt's Casino - Cosmic Slots</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="slots.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Cosmic Slots</h1>
+        <div id="info-panel">
+            <div id="balance">Balance: $1000</div>
+            <div id="bet">Current Bet: $0</div>
+            <div id="win-streak">Win Streak: 0</div>
+            <div id="paylines">Active Paylines: 1</div>
+        </div>
+        <div id="slot-machine">
+            <div id="reels-container">
+                <div class="payline" id="payline1"></div>
+                <div class="payline" id="payline2"></div>
+                <div class="payline" id="payline3"></div>
+                <div id="reels">
+                    <div class="reel-column">
+                        <div class="reel" id="reel1-1"></div>
+                        <div class="reel" id="reel1-2"></div>
+                        <div class="reel" id="reel1-3"></div>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel" id="reel2-1"></div>
+                        <div class="reel" id="reel2-2"></div>
+                        <div class="reel" id="reel2-3"></div>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel" id="reel3-1"></div>
+                        <div class="reel" id="reel3-2"></div>
+                        <div class="reel" id="reel3-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="slot-result"></div>
+        </div>
+        <div id="betting-area">
+            <h3>Place Your Bet</h3>
+            <div id="chip-container"></div>
+            <div id="bet-display">
+                <p>Current Bet:</p>
+                <div id="bet-chips"></div>
+            </div>
+            <button id="clear-bet">Clear Bet</button>
+        </div>
+        <div id="actions">
+            <button id="spin">Spin</button>
+            <button id="max-bet">Max Bet</button>
+            <button id="auto-play">Auto Play</button>
+            <button id="change-paylines">Change Paylines</button>
+            <button id="back-to-lobby">Back to Lobby</button>
+        </div>
+        <div id="message"></div>
+        <div id="pay-table"></div>
+    </div>
+    <div id="bonus-game" class="hidden">
+        <h2>Bonus Game: Pick a Planet!</h2>
+        <div id="planets"></div>
+    </div>
+    <script src="slots.js"></script>
+</body>
+</html>

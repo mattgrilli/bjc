@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt's Casino</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .game-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+        .game-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+        .game-card h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        .game-card a {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .game-card a:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Welcome to Matt's Casino</h1>
+        <div class="game-grid">
+            <div class="game-card">
+                <div class="game-icon">🃏</div>
+                <h3>Blackjack</h3>
+                <a href="blackjack.html">Play Now</a>
+            </div>
+            <div class="game-card">
+                <div class="game-icon">🎡</div>
+                <h3>Roulette</h3>
+                <a href="#">Coming Soon</a>
+            </div>
+            <div class="game-card">
+                <div class="game-icon">♠️♥️♦️♣️</div>
+                <h3>Poker</h3>
+                <a href="#">Coming Soon</a>
+            </div>
+            <div class="game-card">
+                <div class="game-icon">🎰</div>
+                <h3>Slots</h3>
+                <a href="slots.html">Play Now</a>
+            </div>
+        </div>
+        <div id="balance">Balance: $1000</div>
+        <div id="message"></div>
+    </div>
+    <script>
+        // You can add JavaScript here for any interactive elements on the landing page
+        // For example, updating the balance from local storage:
+        document.addEventListener('DOMContentLoaded', function() {
+            const balance = localStorage.getItem('casinoBalance') || 1000;
+            document.getElementById('balance').textContent = `Balance: $${balance}`;
+        });
+    </script>
+</body>
+</html>
