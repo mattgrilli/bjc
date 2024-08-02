@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt's Roulette</title>
+    <link rel="stylesheet" href="roulette.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Matt's Roulette</h1>
+       
+        <div id="stats-bar">
+            <div id="balance">Balance: $1000</div>
+            <div id="bet">Current Bet: $0</div>
+        </div>
+       
+        <div id="game-area">
+            <div id="wheel-and-history">
+                <div id="roulette-wheel-container">
+                    <div id="roulette-wheel">
+                        <div class="wheel-outer">
+                            <div class="wheel-center"></div>
+                            <div class="wheel-numbers"></div>
+                        </div>
+                        <div id="ball"></div>
+                    </div>
+                </div>
+                <div id="winning-number"></div>
+                <div id="history">
+                    <h3>Recent Numbers</h3>
+                    <div id="recent-numbers"></div>
+                </div>
+            </div>
+           
+            <div id="betting-area">
+                <h3>Place Your Bets</h3>
+                <div id="betting-board">
+                    <div class="zero-spot">
+                        <div class="betting-spot green" data-bet="number" data-number="0">0</div>
+                    </div>
+                    <div class="number-grid"></div>
+                    <div class="outside-bets"></div>
+                    <div class="column-bets"></div>
+                </div>
+                <div id="chip-container"></div>
+                <div id="bet-display">
+                    Current Bets:
+                    <div id="bet-chips"></div>
+                </div>
+                <button id="clear-bet">Clear Bet</button>
+                <button id="spin">Spin</button>
+            </div>
+        </div>
+       
+        <div id="message"></div>
+       
+        <div id="actions">
+            <button id="new-game">New Game</button>
+            <button id="change-theme">Change Theme</button>
+            <button id="toggle-sound">Toggle Sound</button>
+            <button id="show-odds">Show Odds</button>
+        </div>
+       
+        <div id="odds-info" class="hidden">
+            <h3>Roulette Odds</h3>
+            <ul>
+                <li>Single Number: 35 to 1</li>
+                <li>Red/Black: 1 to 1</li>
+                <li>Odd/Even: 1 to 1</li>
+                <li>1-18/19-36: 1 to 1</li>
+                <li>Dozens: 2 to 1</li>
+                <li>Columns: 2 to 1</li>
+            </ul>
+        </div>
+    </div>
+   
+    <script src="roulette.js"></script>
+</body>
+</html>
