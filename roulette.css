@@ -59,12 +59,7 @@ h1 {
 #roulette-wheel {
     width: 400px;
     height: 400px;
-    border-radius: 50%;
-    background-color: #321e0f;
-    border: 15px solid #8B4513;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5) inset, 0 0 20px rgba(0, 0, 0, 0.3);
     position: relative;
-    overflow: hidden;
 }
 
 .wheel-outer {

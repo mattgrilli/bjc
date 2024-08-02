@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt's Poker - Ultimate Edition</title>
+    <link rel="stylesheet" href="poker.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Matt's Poker - Ultimate Edition</h1>
+        <div id="game-info">
+            <div id="balance">Balance: $1000</div>
+            <div id="pot">Pot: $0</div>
+            <div id="current-bet">Current Bet: $0</div>
+        </div>
+        <div id="poker-table">
+            <div id="community-cards"></div>
+            <div id="players-container">
+                <div id="player1" class="player">
+                    <div class="player-info">
+                        <div class="player-name">You</div>
+                        <div class="player-balance">$1000</div>
+                        <div class="player-bet">Bet: $0</div>
+                        <div class="player-timer">30s</div>
+                    </div>
+                    <div class="player-cards"></div>
+                </div>
+                <div id="player2" class="player">
+                    <div class="player-info">
+                        <div class="player-name">Player 2</div>
+                        <div class="player-balance">$1000</div>
+                        <div class="player-bet">Bet: $0</div>
+                        <div class="player-timer">30s</div>
+                    </div>
+                    <div class="player-cards"></div>
+                </div>
+                <div id="player3" class="player">
+                    <div class="player-info">
+                        <div class="player-name">Player 3</div>
+                        <div class="player-balance">$1000</div>
+                        <div class="player-bet">Bet: $0</div>
+                        <div class="player-timer">30s</div>
+                    </div>
+                    <div class="player-cards"></div>
+                </div>
+                <div id="player4" class="player">
+                    <div class="player-info">
+                        <div class="player-name">Player 4</div>
+                        <div class="player-balance">$1000</div>
+                        <div class="player-bet">Bet: $0</div>
+                        <div class="player-timer">30s</div>
+                    </div>
+                    <div class="player-cards"></div>
+                </div>
+                <div id="player5" class="player">
+                    <div class="player-info">
+                        <div class="player-name">Player 5</div>
+                        <div class="player-balance">$1000</div>
+                        <div class="player-bet">Bet: $0</div>
+                        <div class="player-timer">30s</div>
+                    </div>
+                    <div class="player-cards"></div>
+                </div>
+                <div id="player6" class="player">
+                    <div class="player-info">
+                        <div class="player-name">Player 6</div>
+                        <div class="player-balance">$1000</div>
+                        <div class="player-bet">Bet: $0</div>
+                        <div class="player-timer">30s</div>
+                    </div>
+                    <div class="player-cards"></div>
+                </div>
+            </div>
+            <div id="dealer-button">D</div>
+            <div id="central-pot">Pot: $0</div>
+        </div>
+        <div id="betting-area">
+            <div id="chip-container"></div>
+            <div id="bet-display">Your Bet: $0</div>
+            <button id="place-bet">Place Bet</button>
+            <button id="clear-bet">Clear Bet</button>
+        </div>
+        <div id="actions">
+            <button id="check">Check</button>
+            <button id="call">Call</button>
+            <button id="raise">Raise</button>
+            <button id="fold">Fold</button>
+        </div>
+        <div id="turn-indicator"></div>
+        <div id="message"></div>
+        <div id="chat-window"></div>
+    </div>
+    <script src="poker.js"></script>
+</body>
+</html>
