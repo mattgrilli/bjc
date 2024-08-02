@@ -1,55 +1,94 @@
+// Symbols and pay table
 const symbols = ['🚀', '🌟', '🌙', '🪐', '👽', '🛸', '🌈', '🌠'];
 const payTable = {
-    '🚀': 3,
-    '🌟': 4,
-    '🌙': 5,
-    '🪐': 6,
-    '👽': 8,
-    '🛸': 10,
-    '🌈': 15, // Wild
-    '🌠': 20  // Scatter
+    '🚀': 2,
+    '🌟': 3,
+    '🌙': 4,
+    '🪐': 5,
+    '👽': 7,
+    '🛸': 9,
+    '🌈': 12, // Wild
+    '🌠': 15  // Scatter
 };
+
+// Game state
 let balance = 1000;
 let currentBet = 0;
-const maxBet = 100;
+let maxBet = 100;
 let isAutoPlay = false;
 let winStreak = 0;
 let freeSpins = 0;
 let freeSpinMultiplier = 1;
 let activePaylines = 1;
+let bonusGameType = '';
 
+// Paylines
 const paylines = [
     [[0,0], [1,0], [2,0]], // Top row
     [[0,1], [1,1], [2,1]], // Middle row
     [[0,2], [1,2], [2,2]]  // Bottom row
 ];
 
-// Initialize sound effects
-const spinSound = new Audio('sounds/card.wav');
-const winSound = new Audio('sounds/win.mp3');
-const chipSound = new Audio('sounds/chip.wav');
+// Sound effects
+const sounds = {
+    spin: { audio: new Audio('sounds/spin.wav'), duration: 1000 },
+    slotsWin: { audio: new Audio('sounds/slots_win.wav'), duration: 2000 },
+    slotsLose: { audio: new Audio('sounds/slots_lose.wav'), duration: 1500 },
+    chip: { audio: new Audio('sounds/chip.wav'), duration: 500 },
+    bonus: { audio: new Audio('sounds/bonus.wav'), duration: 2000 },
+    jackpot: { audio: new Audio('sounds/jackpot.wav'), duration: 3000 },
+    freespin: { audio: new Audio('sounds/freespin.wav'), duration: 2000 },
+    coinClink: { audio: new Audio('sounds/coin_clink.wav'), duration: 200 }
+};
 
-function playSound(sound) {
-    sound.currentTime = 0;
-    sound.play();
+function playSound(soundName) {
+    const sound = sounds[soundName];
+    if (sound.audio.currentTime > 0) {
+        sound.audio.pause();
+        sound.audio.currentTime = 0;
+    }
+    sound.audio.play();
+    setTimeout(() => {
+        sound.audio.pause();
+        sound.audio.currentTime = 0;
+    }, sound.duration);
 }
 
 function updateBalance(amount) {
     balance += amount;
     document.getElementById('balance').textContent = `Balance: $${balance}`;
+    updateMaxBet();
+}
+
+function updateMaxBet() {
+    maxBet = Math.min(balance, 1000);
+    const chipValues = [1, 5, 25, 100, 500];
+    const chipContainer = document.getElementById('chip-container');
+    chipContainer.innerHTML = '';
+    chipValues.forEach(value => {
+        if (value <= maxBet) {
+            const chip = document.createElement('div');
+            chip.className = `chip chip-${value}`;
+            chip.textContent = `$${value}`;
+            chip.addEventListener('click', () => placeBet(value));
+            chipContainer.appendChild(chip);
+        }
+    });
 }
 
 function placeBet(amount) {
     if (freeSpins > 0) return true;
-    if (amount * activePaylines > balance) {
+    const totalBet = currentBet + amount;
+    if (totalBet > balance) {
         setMessage("Insufficient funds for this bet.");
         return false;
     }
-    currentBet = amount * activePaylines;
-    updateBalance(-currentBet);
+    currentBet = totalBet;
+    updateBalance(-amount);
     document.getElementById('bet').textContent = `Current Bet: $${currentBet}`;
-    playSound(chipSound);
+    playSound('chip');
     animateChip(amount);
+    updateBetDisplay();
     return true;
 }
 
@@ -67,16 +106,17 @@ function spin() {
         return;
     }
 
-    playSound(spinSound);
+    playSound('spin');
 
-    const reels = [
-        [document.getElementById('reel1-1'), document.getElementById('reel1-2'), document.getElementById('reel1-3')],
-        [document.getElementById('reel2-1'), document.getElementById('reel2-2'), document.getElementById('reel2-3')],
-        [document.getElementById('reel3-1'), document.getElementById('reel3-2'), document.getElementById('reel3-3')]
-    ];
+    const reelColumns = document.querySelectorAll('.reel-column');
 
-    reels.forEach(column => {
-        column.forEach(reel => {
+    reelColumns.forEach(column => {
+        column.style.animation = 'none';
+        column.offsetHeight; // Trigger reflow
+        column.style.animation = 'reelSpin 0.5s ease-out';
+        
+        const reels = column.querySelectorAll('.reel');
+        reels.forEach(reel => {
             reel.classList.add('spinning');
             let symbolChangeInterval = setInterval(() => {
                 reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
@@ -90,9 +130,9 @@ function spin() {
     });
 
     setTimeout(() => {
-        const result = reels.map(column => 
-            column.map(reel => {
-                const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        const result = Array.from(reelColumns).map(column => 
+            Array.from(column.querySelectorAll('.reel')).map(reel => {
+                const symbol = getRandomSymbol();
                 reel.textContent = symbol;
                 return symbol;
             })
@@ -101,20 +141,27 @@ function spin() {
         checkWin(result);
 
         if (isAutoPlay && freeSpins === 0) {
-            setTimeout(spin, 2000);
+            setTimeout(spin, 3000);
         } else if (freeSpins > 0) {
-            setTimeout(spin, 1000);
+            setTimeout(spin, 2000);
         }
-    }, 1000);
+    }, 1500);
+}
+
+function getRandomSymbol() {
+    const randomValue = Math.random();
+    if (randomValue < 0.01) return '🌠'; // 1% chance for scatter
+    if (randomValue < 0.03) return '🌈'; // 2% chance for wild
+    return symbols[Math.floor(Math.random() * (symbols.length - 2))]; // Exclude wild and scatter from regular symbols
 }
 
 function checkWin(result) {
     let totalWin = 0;
-    const payline = document.querySelectorAll('.payline');
+    const paylines = document.querySelectorAll('.payline');
     
     for (let i = 0; i < activePaylines; i++) {
-        payline[i].style.display = 'block';
-        const lineResult = paylines[i].map(([x, y]) => result[x][y]);
+        paylines[i].classList.add('active');
+        const lineResult = [result[0][i], result[1][i], result[2][i]];
         const win = calculateWin(lineResult);
         totalWin += win;
     }
@@ -127,37 +174,42 @@ function checkWin(result) {
     if (totalWin > 0) {
         setMessage(`You won $${totalWin}!`);
         updateBalance(totalWin);
-        playSound(winSound);
+        if (totalWin >= currentBet * 10) {
+            playSound('jackpot');
+        } else {
+            playSound('slotsWin');
+        }
         winStreak++;
         animateWin();
-        if (Math.random() < 0.3) { // 30% chance to trigger bonus game
-            setTimeout(startBonusGame, 1500);
+        animateWinnings(totalWin);
+        
+        if (Math.random() < 0.2) { // 20% chance to trigger bonus game
+            setTimeout(startBonusGame, Math.max(3000, totalWin * 10)); // Delay based on win amount
         }
     } else {
         setMessage(freeSpins > 0 ? `${freeSpins} free spins left!` : "Better luck next time!");
         winStreak = 0;
+        playSound('slotsLose');
     }
 
     updateWinStreak();
+    updateDisplay();
     setTimeout(() => {
-        payline.forEach(line => line.style.display = 'none');
+        paylines.forEach(line => line.classList.remove('active'));
     }, 2000);
 
     if (freeSpins > 0) {
         freeSpins--;
+        updateFreeSpinsDisplay();
         if (freeSpins === 0) {
             freeSpinMultiplier = 1;
             setMessage("Free spins completed!");
         }
     } else {
         currentBet = 0;
-        document.getElementById('bet').textContent = `Current Bet: $${currentBet}`;
     }
     
     updateBetDisplay();
-    if (Math.random() < 0.2) { // 20% chance to upgrade symbols
-        upgradeSymbols();
-    }
 }
 
 function calculateWin(lineResult) {
@@ -198,38 +250,155 @@ function triggerFreeSpins() {
     freeSpins = 10;
     freeSpinMultiplier = 2;
     setMessage("You've won 10 free spins with 2x multiplier!");
+    playSound('freespin');
+    updateFreeSpinsDisplay();
 }
 
 function startBonusGame() {
+    playSound('bonus');
     const bonusGame = document.getElementById('bonus-game');
     bonusGame.classList.remove('hidden');
 
+    // Randomly choose a bonus game type
+    const bonusTypes = ['planetPicker', 'treasureChest', 'alienInvasion'];
+    bonusGameType = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
+
+    switch(bonusGameType) {
+        case 'planetPicker':
+            setupPlanetPicker();
+            break;
+        case 'treasureChest':
+            setupTreasureChest();
+            break;
+        case 'alienInvasion':
+            setupAlienInvasion();
+            break;
+    }
+}
+
+function setupPlanetPicker() {
     const planets = document.getElementById('planets');
     planets.innerHTML = '';
+    setMessage("Pick a planet to reveal your bonus!");
 
-    const planetImages = [
-        'url("images/planet1.jpg")',
-        'url("images/planet2.jpg")',
-        'url("images/planet3.jpg")'
-    ];
+    const bonusMultipliers = [2, 3, 4, 5, 6, 8];
+    const shuffledMultipliers = shuffleArray(bonusMultipliers);
 
     for (let i = 0; i < 3; i++) {
         const planet = document.createElement('div');
         planet.classList.add('planet');
-        planet.style.backgroundImage = planetImages[i];
+        planet.dataset.multiplier = shuffledMultipliers[i];
+        planet.style.backgroundImage = `url('images/planet${i+1}.png')`;
         planet.addEventListener('click', () => endBonusGame(planet));
         planets.appendChild(planet);
     }
 }
 
-function endBonusGame(selectedPlanet) {
-    const bonusWin = Math.floor(Math.random() * 5 + 1) * currentBet; // 1x to 5x bet
+function setupTreasureChest() {
+    const planets = document.getElementById('planets');
+    planets.innerHTML = '';
+    setMessage("Choose a treasure chest to reveal your prize!");
+
+    const prizes = ['2x', '3x', '4x', '5x', 'jackpot'];
+    const shuffledPrizes = shuffleArray(prizes);
+
+    for (let i = 0; i < 3; i++) {
+        const chest = document.createElement('div');
+        chest.classList.add('treasure-chest');
+        chest.dataset.prize = shuffledPrizes[i];
+        chest.style.backgroundImage = `url('images/chest.png')`;
+        chest.addEventListener('click', () => endBonusGame(chest));
+        planets.appendChild(chest);
+    }
+}
+
+function setupAlienInvasion() {
+    const planets = document.getElementById('planets');
+    planets.innerHTML = '';
+    setMessage("Defeat the aliens to win bonus prizes!");
+
+    for (let i = 0; i < 5; i++) {
+        const alien = document.createElement('div');
+        alien.classList.add('alien');
+        alien.dataset.prize = Math.floor(Math.random() * 100) + 50; // Random prize between 50 and 150
+        alien.style.backgroundImage = `url('images/alien${i+1}.png')`;
+        alien.addEventListener('click', () => hitAlien(alien));
+        planets.appendChild(alien);
+    }
+}
+
+function hitAlien(alien) {
+    alien.classList.add('defeated');
+    const prize = parseInt(alien.dataset.prize);
+    updateBalance(prize);
+    setMessage(`You defeated an alien and won $${prize}!`);
+    
+    const remainingAliens = document.querySelectorAll('.alien:not(.defeated)');
+    if (remainingAliens.length === 0) {
+        setTimeout(() => {
+            endBonusGame();
+        }, 2000);
+    }
+}
+
+function endBonusGame(selectedItem) {
+    let bonusWin = 0;
+
+    switch(bonusGameType) {
+        case 'planetPicker':
+            const multiplier = parseInt(selectedItem.dataset.multiplier);
+            bonusWin = currentBet * multiplier;
+            revealAllItems('.planet', 'multiplier');
+            break;
+        case 'treasureChest':
+            const prize = selectedItem.dataset.prize;
+            if (prize === 'jackpot') {
+                bonusWin = currentBet * 50; // Jackpot is 50x the bet
+            } else {
+                bonusWin = currentBet * parseInt(prize);
+            }
+            revealAllItems('.treasure-chest', 'prize');
+            break;
+        case 'alienInvasion':
+            // Bonus win is already added in hitAlien function
+            bonusWin = 0;
+            break;
+    }
+
     updateBalance(bonusWin);
-    setMessage(`Bonus win: $${bonusWin}!`);
-    selectedPlanet.style.transform = 'scale(1.2)';
+    
+    if (bonusWin > 0) {
+        setMessage(`Bonus win: $${bonusWin}!`);
+        playSound('slotsWin');
+    }
+    
     setTimeout(() => {
         document.getElementById('bonus-game').classList.add('hidden');
-    }, 2000);
+        // Reset bonus game elements
+        document.getElementById('planets').innerHTML = '';
+    }, 3000);
+}
+
+function revealAllItems(selector, dataAttribute) {
+    const items = document.querySelectorAll(selector);
+    items.forEach(item => {
+        const value = item.dataset[dataAttribute];
+        item.textContent = value;
+        item.style.color = 'white';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'center';
+        item.style.alignItems = 'center';
+        item.style.fontSize = '24px';
+        item.style.fontWeight = 'bold';
+    });
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
 }
 
 function updateWinStreak() {
@@ -239,22 +408,6 @@ function updateWinStreak() {
     } else {
         document.getElementById('win-streak').style.color = '#00ffff';
     }
-}
-
-function upgradeSymbols() {
-    const symbolOrder = ['🚀', '🌟', '🌙', '🪐', '👽', '🛸'];
-    const reels = document.querySelectorAll('.reel');
-    reels.forEach(reel => {
-        const currentSymbol = reel.textContent;
-        const currentIndex = symbolOrder.indexOf(currentSymbol);
-        if (currentIndex < symbolOrder.length - 1) {
-            const newSymbol = symbolOrder[currentIndex + 1];
-            reel.textContent = newSymbol;
-            reel.classList.add('upgraded');
-            setTimeout(() => reel.classList.remove('upgraded'), 500);
-        }
-    });
-    setMessage("Symbols upgraded for the next spin!");
 }
 
 function animateWin() {
@@ -307,11 +460,28 @@ function updateBetDisplay() {
     const betChips = document.getElementById('bet-chips');
     betChips.innerHTML = '';
     if (currentBet > 0) {
-        const chip = document.createElement('div');
-        chip.className = `chip chip-${currentBet}`;
-        chip.textContent = `$${currentBet}`;
-        betChips.appendChild(chip);
+        const chipValues = [500, 100, 25, 5, 1];
+        let remainingBet = currentBet;
+        let stackOffset = 0;
+
+        chipValues.forEach(value => {
+            const count = Math.floor(remainingBet / value);
+            for (let i = 0; i < count; i++) {
+                const chip = document.createElement('div');
+                chip.className = `chip chip-${value}`;
+                chip.textContent = `$${value}`;
+                chip.style.position = 'absolute';
+                chip.style.bottom = `${stackOffset}px`;
+                chip.style.left = `${stackOffset}px`;
+                chip.style.zIndex = chipValues.length - chipValues.indexOf(value);
+                betChips.appendChild(chip);
+                stackOffset += 5;
+            }
+            remainingBet %= value;
+        });
     }
+
+    document.getElementById('bet').textContent = `Current Bet: $${currentBet}`;
 }
 
 function toggleAutoPlay() {
@@ -327,6 +497,14 @@ function changePaylines() {
     activePaylines = activePaylines % 3 + 1;
     document.getElementById('paylines').textContent = `Active Paylines: ${activePaylines}`;
     clearBet();
+    updatePaylineDisplay();
+}
+
+function updatePaylineDisplay() {
+    const paylineElements = document.querySelectorAll('.payline');
+    paylineElements.forEach((el, index) => {
+        el.style.display = index < activePaylines ? 'block' : 'none';
+    });
 }
 
 function displayPayTable() {
@@ -339,11 +517,79 @@ function displayPayTable() {
     payTableDisplay.innerHTML += `<p>🌠 Scatter: 3 or more trigger 10 free spins with 2x multiplier</p>`;
 }
 
+function updateDisplay() {
+    document.getElementById('balance').textContent = `Balance: $${balance}`;
+    document.getElementById('bet').textContent = `Current Bet: $${currentBet}`;
+    updateFreeSpinsDisplay();
+}
+
+function updateFreeSpinsDisplay() {
+    const freeSpinsDisplay = document.getElementById('free-spins-display');
+    if (freeSpins > 0) {
+        freeSpinsDisplay.textContent = `FREE SPINS: ${freeSpins}`;
+        freeSpinsDisplay.style.display = 'block';
+    } else {
+        freeSpinsDisplay.style.display = 'none';
+    }
+}
+
+function animateWinnings(amount) {
+    const winningsDisplay = document.getElementById('winnings-display');
+    const winOverlay = document.getElementById('win-overlay');
+    winOverlay.style.display = 'flex';
+    winningsDisplay.style.display = 'block';
+    let currentDisplay = 0;
+    const duration = Math.min(5000, amount * 20); // Longer duration for bigger wins, max 5 seconds
+    const interval = 50; // Update every 50ms
+    const steps = duration / interval;
+    const increment = amount / steps;
+
+    winningsDisplay.style.fontSize = '72px';
+    winningsDisplay.style.fontWeight = 'bold';
+    winningsDisplay.style.color = '#FFD700';
+    winningsDisplay.style.textShadow = '0 0 10px #FF4500';
+
+    const animation = setInterval(() => {
+        currentDisplay += increment;
+        winningsDisplay.textContent = `$${Math.floor(currentDisplay)}`;
+        if (Math.random() < 0.3) {
+            playSound('coinClink');
+        }
+        
+        // Add pulsating effect
+        winningsDisplay.style.transform = `scale(${1 + Math.sin(Date.now() / 100) * 0.1})`;
+
+        if (currentDisplay >= amount) {
+            clearInterval(animation);
+            winningsDisplay.textContent = `$${amount}`;
+            winningsDisplay.style.color = '#00FF00';
+            winningsDisplay.style.fontSize = '96px';
+            playSound('slotsWin');
+            
+            // Add a celebratory message
+            const celebrationMsg = document.createElement('div');
+            celebrationMsg.textContent = 'BIG WIN!';
+            celebrationMsg.style.fontSize = '48px';
+            celebrationMsg.style.color = '#FF4500';
+            celebrationMsg.style.marginTop = '20px';
+            winOverlay.appendChild(celebrationMsg);
+
+            setTimeout(() => {
+                winOverlay.style.display = 'none';
+                winningsDisplay.style.display = 'none';
+                winningsDisplay.style.fontSize = '72px';
+                winningsDisplay.style.color = '#FFD700';
+                winOverlay.removeChild(celebrationMsg);
+            }, 3000);
+        }
+    }, interval);
+}
+
 function initializeGame() {
     document.getElementById('spin').addEventListener('click', spin);
     document.getElementById('max-bet').addEventListener('click', () => {
         clearBet();
-        placeBet(maxBet / activePaylines);
+        placeBet(maxBet);
     });
     document.getElementById('clear-bet').addEventListener('click', clearBet);
     document.getElementById('back-to-lobby').addEventListener('click', () => {
@@ -352,26 +598,23 @@ function initializeGame() {
     document.getElementById('auto-play').addEventListener('click', toggleAutoPlay);
     document.getElementById('change-paylines').addEventListener('click', changePaylines);
 
-    // Initialize chips
-    const chipValues = [1, 5, 25, 100];
-    const chipContainer = document.getElementById('chip-container');
-    chipValues.forEach(value => {
-        const chip = document.createElement('div');
-        chip.className = `chip chip-${value}`;
-        chip.textContent = `$${value}`;
-        chip.addEventListener('click', () => placeBet(value));
-        chipContainer.appendChild(chip);
-    });
+    updateMaxBet();
+    updatePaylineDisplay();
 
     // Set initial random symbols on the reels
     const reels = document.querySelectorAll('.reel');
     reels.forEach(reel => {
-        reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        reel.textContent = getRandomSymbol();
     });
 
     displayPayTable();
-    updateBalance(0); // Initialize balance display
+    updateDisplay();
     updateWinStreak();
 }
 
 document.addEventListener('DOMContentLoaded', initializeGame);
+
+// Helper function for random number generation
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

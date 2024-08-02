@@ -1,10 +1,20 @@
 #slot-machine {
     background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 10px;
-    padding: 20px;
+    border-radius: 15px;
+    padding: 30px;
     margin-bottom: 20px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+}
+
+#slot-result {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #00ffff;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00ffff;
 }
 
 #slot-machine::before {
@@ -14,10 +24,11 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background-image: url('cosmic-background.jpg');
+    background-image: 
+        url('https://upload.wikimedia.org/wikipedia/commons/2/2f/Hubble_ultra_deep_field.jpg');
     background-size: cover;
     opacity: 0.2;
-    animation: rotate 60s linear infinite;
+    animation: rotate 120s linear infinite;
     z-index: -1;
 }
 
@@ -43,26 +54,61 @@
 
 #reels-container {
     position: relative;
-    background-color: #000;
-    padding: 10px;
-    border-radius: 5px;
+    background: linear-gradient(45deg, #000428, #004e92);
+    padding: 20px;
+    border-radius: 10px;
     margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5) inset;
+    overflow: hidden;
 }
+
+#reels-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    background-color: #000000;
+    background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+        radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+    animation: twinkle 10s linear infinite;
+    z-index: -1;
+}
+
+@keyframes twinkle {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+
 
 #reels {
     display: flex;
     justify-content: space-around;
+    perspective: 1000px;
 }
 
 .reel-column {
     display: flex;
     flex-direction: column;
+    transform-style: preserve-3d;
+    animation: reelSpin 0.5s ease-out;
+}
+
+@keyframes reelSpin {
+    0% { transform: rotateX(0deg); }
+    100% { transform: rotateX(360deg); }
 }
 
 .reel {
     width: 100px;
     height: 100px;
-    background-color: #1a1a1a;
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
     border: 2px solid #4a4a4a;
     border-radius: 10px;
     display: flex;
@@ -72,30 +118,37 @@
     margin: 5px;
     overflow: hidden;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.5) inset;
+    transition: all 0.3s ease;
+}
+
+.reel:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8) inset;
 }
 
 .payline {
     position: absolute;
     left: 0;
     right: 0;
-    height: 2px;
-    background-color: #00ffff;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #00ffff, transparent);
     box-shadow: 0 0 10px #00ffff;
-    display: none;
-    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 #payline1 { top: 18%; }
 #payline2 { top: 50%; }
 #payline3 { top: 82%; }
 
-#slot-result {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: #00ffff;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px #00ffff;
+.payline.active {
+    opacity: 1;
+    animation: paylinePulse 1s infinite;
+}
+
+@keyframes paylinePulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 button {
@@ -130,7 +183,7 @@ button:disabled {
 }
 
 .spinning {
-    animation: spin 0.1s linear infinite;
+    animation: spin 0.2s linear infinite;
 }
 
 #pay-table {
@@ -142,9 +195,9 @@ button:disabled {
 }
 
 @keyframes winPulse {
-    0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
-    50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
-    100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+    0% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+    50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 255, 255, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
 }
 
 .win-animation {
@@ -168,6 +221,7 @@ button:disabled {
 .chip-5 { background-color: #FF851B; color: white; }
 .chip-25 { background-color: #FFDC00; color: black; }
 .chip-100 { background-color: #2ECC40; color: white; }
+.chip-500 { background-color: #0074D9; color: white; }
 
 .chip:hover {
     transform: scale(1.1);
@@ -183,6 +237,8 @@ button:disabled {
     padding: 20px;
     border-radius: 10px;
     z-index: 1000;
+    width: 80%;
+    max-width: 600px;
 }
 
 #bonus-game.hidden {
@@ -192,22 +248,74 @@ button:disabled {
 #planets {
     display: flex;
     justify-content: space-around;
+    flex-wrap: wrap;
     margin-top: 20px;
 }
 
-.planet {
+.planet, .treasure-chest, .alien {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     cursor: pointer;
-    transition: transform 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
     background-size: cover;
     background-position: center;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    margin: 10px;
+    position: relative;
+    overflow: hidden;
 }
 
-.planet:hover {
+.planet:hover, .treasure-chest:hover, .alien:hover {
     transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+}
+
+.planet::before, .treasure-chest::before, .alien::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, transparent 40%, rgba(255,255,255,0.1) 70%, rgba(255,255,255,0.3) 100%);
+    animation: rotate 10s linear infinite;
+}
+
+.alien {
+    background-color: #1a472a; /* Dark green background for aliens */
+}
+
+.alien::after {
+    content: '👽';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+}
+
+.alien.defeated {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.alien.defeated:hover {
+    transform: none;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.treasure-chest {
+    background-color: #8B4513; /* Brown color for treasure chest */
+}
+
+.treasure-chest::after {
+    content: '🎁';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
 }
 
 #win-streak {
@@ -222,4 +330,75 @@ button:disabled {
     0% { transform: scale(1); }
     50% { transform: scale(1.2) rotate(180deg); }
     100% { transform: scale(1) rotate(360deg); }
+}
+
+#win-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+#winnings-display {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    animation: winPulse 0.5s infinite alternate;
+}
+
+.win-particles {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: gold;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+#bet-chips {
+    position: relative;
+    height: 70px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#free-spins-display {
+    font-family: 'Digital', monospace;
+    background-color: #000080;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 24px;
+    display: none;
+}
+
+@media (max-width: 600px) {
+    #slot-machine {
+        padding: 15px;
+    }
+
+    .reel {
+        width: 80px;
+        height: 80px;
+        font-size: 36px;
+    }
+
+    .chip {
+        width: 50px;
+        height: 50px;
+        font-size: 14px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 16px;
+    }
 }
